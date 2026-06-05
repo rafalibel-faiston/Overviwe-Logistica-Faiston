@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview Semanal — Gestor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans:['Inter','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                colors: { faiston: {
+                    bg:'#F4F5FA', dark:'#0B0D1F', border:'#E5E8F0', muted:'#5E647A', faint:'#9097AC',
+                    cyan:'#06D7E6', purple:'#5B2EE0', magenta:'#B826C9', pink:'#EC4899'
+                }}
+            }}
+        }
+    </script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script>(function(){var t=localStorage.getItem('faiston_tema');if(t)document.documentElement.setAttribute('data-theme',t);})();</script>
+    <style>
+        :root {
+            --grad: linear-gradient(135deg,#5B2EE0 0%,#B826C9 55%,#EC4899 100%);
+            --glow: 0 12px 32px -8px rgba(184,38,201,.35), 0 4px 12px -4px rgba(91,46,224,.25);
+            --c-log: #06D7E6;
+            --c-fac: #5B2EE0;
+            --c-seg: #EC4899;
+        }
+        .grad-bg   { background: var(--grad); }
+        .grad-text { background: var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .btn-grad  { background: var(--grad); box-shadow: var(--glow); transition: transform .12s ease; }
+        .btn-grad:hover { transform:translateY(-1px); opacity:.93; }
+
+        /* ── Semaphore ── */
+        .sema-card { transition: all .25s ease; position: relative; overflow: hidden; }
+        .sema-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; border-radius:12px 12px 0 0; }
+        .sema-verde  ::before, .sema-verde  { --sema-color:#3fb950; }
+        .sema-amarelo::before, .sema-amarelo{ --sema-color:#d29922; }
+        .sema-vermelho::before,.sema-vermelho{ --sema-color:#f85149; }
+        .sema-card::before { background: var(--sema-color, #9097AC); }
+        .sema-dot { width:10px; height:10px; border-radius:50%; background: var(--sema-color,#9097AC); }
+        .sema-vermelho .sema-dot { animation: pulse-sema 1.4s ease infinite; }
+        @keyframes pulse-sema { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)} }
+
+        /* ── Area tabs ── */
+        .area-tab { transition: all .2s ease; cursor: pointer; position: relative; }
+        .area-tab::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; border-radius:2px; background:transparent; transition: background .2s; }
+        .area-tab.active-logistica  { color:var(--c-log) !important; }
+        .area-tab.active-logistica::after  { background:var(--c-log); }
+        .area-tab.active-facilities { color:var(--c-fac) !important; }
+        .area-tab.active-facilities::after { background:var(--c-fac); }
+        .area-tab.active-seguros    { color:var(--c-seg) !important; }
+        .area-tab.active-seguros::after    { background:var(--c-seg); }
+
+        /* ── Category section ── */
+        .cat-section { border-left: 3px solid; margin-left: 0; }
+
+        /* ── Item card ── */
+        .item-card { transition: all .15s ease; }
+        .item-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -4px rgba(13,15,35,.12); }
+
+        /* ── Priority dot ── */
+        .dot-baixa   { background:#3fb950; }
+        .dot-media   { background:#d29922; }
+        .dot-alta    { background:#f85149; }
+        .dot-critica { background:#f85149; animation: pcrit 1.4s ease infinite; }
+        @keyframes pcrit { 0%,100%{opacity:1}50%{opacity:.35} }
+
+        /* ── Status badge ── */
+        .badge-aberto       { background:rgba(148,163,184,.15); color:#64748b; }
+        .badge-em_andamento { background:rgba(91,46,224,.12);   color:#5B2EE0; }
+        .badge-concluido    { background:rgba(6,215,230,.12);   color:#0891b2; }
+
+        /* ── KPI mini card ── */
+        .kpi-card { transition: all .2s ease; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px -6px rgba(13,15,35,.1); }
+
+        /* ── Escalation highlight ── */
+        .escalation-card { border-left: 3px solid #EC4899 !important; }
+
+        /* ── Dark mode ── */
+        [data-theme="dark"] body { background:#07070F; color:#F1F2F8; }
+        [data-theme="dark"] header,
+        [data-theme="dark"] .tabs-bar { background:#11111E !important; border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .bg-white { background:#11111E !important; border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .item-card { background:#11111E !important; border-color:rgba(255,255,255,.08) !important; }
+        [data-theme="dark"] .item-card:hover { background:#161628 !important; }
+        [data-theme="dark"] .text-faiston-dark { color:#F1F2F8 !important; }
+        [data-theme="dark"] .text-slate-500, [data-theme="dark"] .text-slate-600 { color:#9097AC !important; }
+        [data-theme="dark"] .border-faiston-border { border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .sema-card { background:#11111E !important; }
+        [data-theme="dark"] .kpi-card  { background:#11111E !important; border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .bg-slate-50 { background:rgba(255,255,255,.03) !important; }
+
+        .custom-scrollbar::-webkit-scrollbar{width:4px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px}
+        @keyframes slide-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .slide-up { animation: slide-up 280ms cubic-bezier(.2,.8,.2,1) both; }
+
+        .semana-badge { background:linear-gradient(135deg,rgba(91,46,224,.1),rgba(6,215,230,.08)); border:1px solid rgba(91,46,224,.2); }
+        .last-update  { font-size:10px; color:#9097AC; }
+    </style>
+</head>
+<body class="bg-faiston-bg text-slate-800 font-sans min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-white border-b border-faiston-border px-6 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-[10px] grad-bg flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(184,38,201,0.45)]">
+            <i class="ph-fill ph-play text-white text-base"></i>
+        </div>
+        <span class="font-extrabold tracking-tight text-faiston-dark text-[15px]">FAISTON <span class="grad-text">OPS</span></span>
+        <span class="w-px h-4 bg-slate-200 mx-1"></span>
+        <span class="text-sm text-slate-500 font-medium">Overview Semanal</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-faiston-purple/10 text-faiston-purple">Gestor</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="semana-badge px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <i class="ph ph-calendar-week text-faiston-purple text-sm"></i>
+            <span class="text-xs font-semibold text-faiston-muted" id="semana-label">—</span>
+        </div>
+        <button onclick="refreshData()" title="Atualizar dados"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-faiston-border text-slate-400 hover:text-faiston-purple hover:border-faiston-purple/40 transition-colors">
+            <i class="ph ph-arrows-clockwise text-sm" id="icon-refresh"></i>
+        </button>
+        <button onclick="toggleTema()" id="btn-tema"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-faiston-border text-slate-400 hover:text-faiston-dark hover:bg-slate-50 transition-colors">
+            <i class="ph ph-moon" id="icon-tema"></i>
+        </button>
+        <a href="/overview" class="btn-grad text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+            <i class="ph ph-pencil-simple text-base"></i> Preencher
+        </a>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- ── TOP: Semáforos + KPIs globais ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+
+        <!-- Semáforos por área -->
+        <div class="lg:col-span-2 grid grid-cols-3 gap-3">
+            <!-- Logística -->
+            <div class="sema-card bg-white rounded-xl border border-faiston-border p-4" id="sema-Logistica">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="ph ph-truck text-base" style="color:var(--c-log)"></i>
+                        <span class="text-xs font-bold text-faiston-dark">Logística</span>
+                    </div>
+                    <div class="sema-dot" id="dot-Logistica"></div>
+                </div>
+                <div class="flex gap-3 text-center">
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-dark" id="sema-log-total">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Itens</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-pink" id="sema-log-critico">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Críticos</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-magenta" id="sema-log-escal">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Escal.</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-faiston-faint mt-3 font-semibold" id="sema-log-label">—</p>
+            </div>
+
+            <!-- Facilities -->
+            <div class="sema-card bg-white rounded-xl border border-faiston-border p-4" id="sema-Facilities">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="ph ph-buildings text-base" style="color:var(--c-fac)"></i>
+                        <span class="text-xs font-bold text-faiston-dark">Facilities</span>
+                    </div>
+                    <div class="sema-dot" id="dot-Facilities"></div>
+                </div>
+                <div class="flex gap-3 text-center">
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-dark" id="sema-fac-total">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Itens</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-pink" id="sema-fac-critico">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Críticos</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-magenta" id="sema-fac-escal">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Escal.</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-faiston-faint mt-3 font-semibold" id="sema-fac-label">—</p>
+            </div>
+
+            <!-- Seguros -->
+            <div class="sema-card bg-white rounded-xl border border-faiston-border p-4" id="sema-Seguros">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="ph ph-shield-check text-base" style="color:var(--c-seg)"></i>
+                        <span class="text-xs font-bold text-faiston-dark">Seguros</span>
+                    </div>
+                    <div class="sema-dot" id="dot-Seguros"></div>
+                </div>
+                <div class="flex gap-3 text-center">
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-dark" id="sema-seg-total">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Itens</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-pink" id="sema-seg-critico">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Críticos</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xl font-extrabold text-faiston-magenta" id="sema-seg-escal">—</p>
+                        <p class="text-[9px] font-bold text-faiston-faint uppercase tracking-wider">Escal.</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-faiston-faint mt-3 font-semibold" id="sema-seg-label">—</p>
+            </div>
+        </div>
+
+        <!-- KPIs globais -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="kpi-card bg-white rounded-xl border border-faiston-border p-4 flex flex-col justify-between">
+                <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider">Total geral</p>
+                <p class="text-3xl font-extrabold text-faiston-dark mt-1" id="kpi-total">—</p>
+                <p class="text-[10px] text-faiston-faint mt-1">todos os itens</p>
+            </div>
+            <div class="kpi-card bg-white rounded-xl border border-faiston-border p-4 flex flex-col justify-between">
+                <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider">Críticos</p>
+                <p class="text-3xl font-extrabold text-faiston-pink mt-1" id="kpi-criticos">—</p>
+                <p class="text-[10px] text-faiston-faint mt-1">requerem atenção</p>
+            </div>
+            <div class="kpi-card bg-white rounded-xl border border-faiston-border p-4 flex flex-col justify-between">
+                <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider">Escalations</p>
+                <p class="text-3xl font-extrabold text-faiston-magenta mt-1" id="kpi-escalations">—</p>
+                <p class="text-[10px] text-faiston-faint mt-1">em aberto/andamento</p>
+            </div>
+            <div class="kpi-card bg-white rounded-xl border border-faiston-border p-4 flex flex-col justify-between">
+                <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider">Precisa direção</p>
+                <p class="text-3xl font-extrabold text-faiston-purple mt-1" id="kpi-direcao">—</p>
+                <p class="text-[10px] text-faiston-faint mt-1">aguardam sua decisão</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Escalations & Direção em destaque ── -->
+    <div id="destaque-section" class="hidden mb-8">
+        <div class="flex items-center gap-2 mb-3">
+            <i class="ph ph-warning-circle text-faiston-pink text-lg"></i>
+            <h2 class="text-sm font-bold text-faiston-dark uppercase tracking-wider">Requer sua atenção</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="destaque-list"></div>
+    </div>
+
+    <!-- ── Area Tabs ── -->
+    <div class="tabs-bar bg-white border border-faiston-border rounded-xl overflow-hidden mb-6">
+        <div class="flex border-b border-faiston-border px-2 pt-1 gap-1">
+            <button onclick="setArea('Logistica')" id="tab-Logistica"
+                class="area-tab px-5 py-3 text-sm font-semibold text-slate-500 flex items-center gap-2 rounded-t-lg hover:text-faiston-dark transition-colors">
+                <i class="ph ph-truck text-base"></i> Logística
+            </button>
+            <button onclick="setArea('Facilities')" id="tab-Facilities"
+                class="area-tab px-5 py-3 text-sm font-semibold text-slate-500 flex items-center gap-2 rounded-t-lg hover:text-faiston-dark transition-colors">
+                <i class="ph ph-buildings text-base"></i> Facilities
+            </button>
+            <button onclick="setArea('Seguros')" id="tab-Seguros"
+                class="area-tab px-5 py-3 text-sm font-semibold text-slate-500 flex items-center gap-2 rounded-t-lg hover:text-faiston-dark transition-colors">
+                <i class="ph ph-shield-check text-base"></i> Seguros
+            </button>
+            <div class="ml-auto flex items-center gap-2 pr-2 pb-1">
+                <span class="last-update" id="last-update-label">—</span>
+            </div>
+        </div>
+
+        <!-- Category filter pills inside tab panel -->
+        <div class="px-4 py-3 border-b border-faiston-border flex gap-2 flex-wrap" id="cat-filters"></div>
+
+        <!-- Items panel -->
+        <div class="p-5 min-h-64 custom-scrollbar" id="area-panel">
+            <div class="flex items-center justify-center py-16 text-slate-300">
+                <div class="text-center">
+                    <i class="ph ph-spinner-gap text-4xl block mb-3 animate-spin opacity-40"></i>
+                    <p class="text-sm">Carregando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────────────────
+const CATEGORIAS = [
+    { key:'atividade',     label:'Atividades Realizadas', icon:'ph-check-circle',       color:'#06D7E6' },
+    { key:'todo',          label:'To Dos em Aberto',      icon:'ph-list-checks',         color:'#5B2EE0' },
+    { key:'criticidade',   label:'Criticidades e Riscos', icon:'ph-warning',             color:'#f85149' },
+    { key:'escalation',    label:'Escalations',           icon:'ph-arrow-up-right',      color:'#EC4899' },
+    { key:'direcao',       label:'Precisa de Direção',    icon:'ph-arrows-out',          color:'#B826C9' },
+    { key:'ideia',         label:'Ideias e Sugestões',    icon:'ph-lightbulb',           color:'#d29922' },
+    { key:'melhoria',      label:'Melhorias',             icon:'ph-trend-up',            color:'#3fb950' },
+    { key:'chamado',       label:'Status de Chamados',    icon:'ph-headset',             color:'#06D7E6' },
+    { key:'proximo_passo', label:'Próximos Passos',       icon:'ph-arrow-circle-right',  color:'#5B2EE0' },
+];
+const AREA_COLORS = { Logistica:'#06D7E6', Facilities:'#5B2EE0', Seguros:'#EC4899' };
+const AREA_ICONS  = { Logistica:'ph-truck', Facilities:'ph-buildings', Seguros:'ph-shield-check' };
+const AREA_IDS    = { Logistica:'log', Facilities:'fac', Seguros:'seg' };
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let allItems  = [];
+let areaAtiva = 'Logistica';
+let catFiltro = 'todas';
+
+// ── INIT ──────────────────────────────────────────────────────────────
+async function init() {
+    setSemanaLabel();
+    await verificarAuth();
+    await refreshData();
+    if (localStorage.getItem('faiston_tema')==='dark')
+        document.getElementById('icon-tema').className='ph ph-sun text-faiston-cyan';
+}
+
+function setSemanaLabel() {
+    const hoje = new Date();
+    const ini  = new Date(hoje); ini.setDate(hoje.getDate()-hoje.getDay()+1);
+    const fim  = new Date(ini);  fim.setDate(ini.getDate()+6);
+    const f = d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    document.getElementById('semana-label').textContent = `Semana ${f(ini)} – ${f(fim)}`;
+}
+
+async function verificarAuth() {
+    try {
+        const r = await fetch('/api/me');
+        if (!r.ok) window.location.href='/';
+    } catch { window.location.href='/'; }
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────
+async function refreshData() {
+    const icon = document.getElementById('icon-refresh');
+    icon.classList.add('animate-spin');
+    try {
+        const r = await fetch('/api/overview');
+        if (!r.ok) throw new Error();
+        allItems = await r.json();
+        renderSemaforos();
+        renderDestaque();
+        renderCatFilters();
+        renderAreaPanel();
+        const agora = new Date();
+        document.getElementById('last-update-label').textContent =
+            `Atualizado ${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
+    } catch {
+        document.getElementById('area-panel').innerHTML = `
+        <div class="text-center py-12 text-slate-300">
+            <i class="ph ph-wifi-slash text-4xl block mb-3 opacity-40"></i>
+            <p class="text-sm">Erro ao carregar. <button onclick="refreshData()" class="text-faiston-purple underline">Tentar novamente</button></p>
+        </div>`;
+    } finally {
+        setTimeout(()=>icon.classList.remove('animate-spin'), 600);
+    }
+}
+
+// ── SEMÁFOROS ─────────────────────────────────────────────────────────
+function renderSemaforos() {
+    let totalGeral=0, critGeral=0, escalGeral=0, direcaoGeral=0;
+
+    ['Logistica','Facilities','Seguros'].forEach(area => {
+        const items   = allItems.filter(i=>i.area===area);
+        const criticos = items.filter(i=>i.prioridade==='Critica').length;
+        const escals   = items.filter(i=>i.categoria==='escalation' && i.status!=='concluido').length;
+        const id       = AREA_IDS[area];
+
+        document.getElementById(`sema-${area}-total`).textContent   = items.length;
+        document.getElementById(`sema-${area}-critico`).textContent = criticos;
+        document.getElementById(`sema-${area}-escal`).textContent   = escals;
+
+        totalGeral   += items.length;
+        critGeral    += criticos;
+        escalGeral   += escals;
+        direcaoGeral += allItems.filter(i=>i.area===area && i.categoria==='direcao' && i.status!=='concluido').length;
+
+        // Semáforo
+        let semaClass, semaLabel;
+        if (criticos > 0 || escals > 0) {
+            semaClass = 'sema-vermelho'; semaLabel = '🔴 Atenção necessária';
+        } else if (items.filter(i=>i.prioridade==='Alta').length > 0) {
+            semaClass = 'sema-amarelo'; semaLabel = '🟡 Monitorar';
+        } else {
+            semaClass = 'sema-verde'; semaLabel = '🟢 Operando bem';
+        }
+
+        const card = document.getElementById(`sema-${area}`);
+        card.className = card.className.replace(/sema-\w+/g,'').trim() + ` sema-card sema-card bg-white rounded-xl border border-faiston-border p-4 ${semaClass}`;
+        const dot = document.getElementById(`dot-${area}`);
+        dot.style.setProperty('--sema-color', semaClass==='sema-verde'?'#3fb950':semaClass==='sema-amarelo'?'#d29922':'#f85149');
+        document.getElementById(`sema-${area}-label`).textContent = semaLabel;
+    });
+
+    document.getElementById('kpi-total').textContent      = totalGeral;
+    document.getElementById('kpi-criticos').textContent   = critGeral;
+    document.getElementById('kpi-escalations').textContent = escalGeral;
+    document.getElementById('kpi-direcao').textContent    = direcaoGeral;
+}
+
+// ── DESTAQUE (escalations + direção) ─────────────────────────────────
+function renderDestaque() {
+    const urgentes = allItems.filter(i =>
+        (i.categoria==='escalation' || i.categoria==='direcao') && i.status!=='concluido'
+    );
+    const section = document.getElementById('destaque-section');
+    const list    = document.getElementById('destaque-list');
+
+    if (!urgentes.length) { section.classList.add('hidden'); return; }
+    section.classList.remove('hidden');
+
+    list.innerHTML = urgentes.map(item => {
+        const def = CATEGORIAS.find(c=>c.key===item.categoria);
+        const areaColor = AREA_COLORS[item.area] || '#9097AC';
+        const areaIcon  = AREA_ICONS[item.area]  || 'ph-circle';
+        const prazo = item.data_prazo
+            ? `<span class="text-[11px] text-faiston-pink flex items-center gap-1"><i class="ph ph-calendar-x"></i>${fmtData(item.data_prazo)}</span>`
+            : '';
+        return `
+        <div class="item-card escalation-card bg-white rounded-xl border border-faiston-border p-4 slide-up">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                     style="background:${def?.color}18; color:${def?.color}">
+                    <i class="ph ${def?.icon||'ph-circle'} text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color:${areaColor}">
+                            <i class="ph ${areaIcon}"></i> ${item.area}
+                        </span>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:${def?.color}18;color:${def?.color}">${def?.label}</span>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${{aberto:'badge-aberto',em_andamento:'badge-em_andamento',concluido:'badge-concluido'}[item.status]||'badge-aberto'}">
+                            ${{aberto:'Aberto',em_andamento:'Em andamento',concluido:'Concluído'}[item.status]||item.status}
+                        </span>
+                    </div>
+                    <p class="text-sm font-semibold text-faiston-dark leading-snug">${item.descricao}</p>
+                    <div class="flex items-center gap-3 mt-1.5 flex-wrap">
+                        ${item.responsavel?`<span class="text-[11px] text-slate-400 flex items-center gap-1"><i class="ph ph-user"></i>${item.responsavel}</span>`:''}
+                        ${prazo}
+                    </div>
+                </div>
+                <span class="w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 dot-${(item.prioridade||'media').toLowerCase()}"></span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── AREA TABS ─────────────────────────────────────────────────────────
+function setArea(area) {
+    areaAtiva = area;
+    catFiltro = 'todas';
+    ['Logistica','Facilities','Seguros'].forEach(a => {
+        const tab = document.getElementById(`tab-${a}`);
+        tab.className = tab.className.replace(/active-\w+/g,'').trim();
+    });
+    document.getElementById(`tab-${area}`).classList.add(`active-${area.toLowerCase()}`);
+    renderCatFilters();
+    renderAreaPanel();
+}
+
+// ── CAT FILTERS ───────────────────────────────────────────────────────
+function renderCatFilters() {
+    const container = document.getElementById('cat-filters');
+    const areaItems = allItems.filter(i=>i.area===areaAtiva);
+    const usadas    = [...new Set(areaItems.map(i=>i.categoria))];
+
+    const all  = [{ key:'todas', label:'Todas', icon:'ph-squares-four', color:'#5E647A' }];
+    const cats = CATEGORIAS.filter(c => usadas.includes(c.key));
+
+    container.innerHTML = [...all, ...cats].map(c => `
+        <button onclick="setCatFiltro('${c.key}')"
+            class="px-3 py-1 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all
+            ${catFiltro===c.key?'':'border-faiston-border text-slate-500 bg-white hover:border-slate-300'}"
+            style="${catFiltro===c.key?`border-color:${c.color};color:${c.color};background:${c.color}18`:''}">
+            <i class="ph ${c.icon} text-sm"></i> ${c.label}
+            <span class="ml-0.5 text-[10px] opacity-60">${c.key==='todas'?areaItems.length:areaItems.filter(i=>i.categoria===c.key).length}</span>
+        </button>`).join('');
+}
+
+function setCatFiltro(key) {
+    catFiltro = key;
+    renderCatFilters();
+    renderAreaPanel();
+}
+
+// ── AREA PANEL ────────────────────────────────────────────────────────
+function renderAreaPanel() {
+    const panel = document.getElementById('area-panel');
+    let items   = allItems.filter(i=>i.area===areaAtiva);
+    if (catFiltro !== 'todas') items = items.filter(i=>i.categoria===catFiltro);
+
+    if (!items.length) {
+        panel.innerHTML = `
+        <div class="text-center py-14 text-slate-300">
+            <i class="ph ph-clipboard-text text-5xl block mb-3 opacity-30"></i>
+            <p class="text-sm font-medium">Nenhum item registrado</p>
+            <p class="text-xs mt-1 opacity-70">O time ainda não preencheu o overview desta área</p>
+        </div>`;
+        return;
+    }
+
+    // agrupar por categoria
+    const grupos = {};
+    items.forEach(i => { if(!grupos[i.categoria]) grupos[i.categoria]=[]; grupos[i.categoria].push(i); });
+
+    // ordem das categorias
+    const ordem = CATEGORIAS.map(c=>c.key);
+    const chaves = Object.keys(grupos).sort((a,b) => ordem.indexOf(a)-ordem.indexOf(b));
+
+    panel.innerHTML = chaves.map(cat => {
+        const def = CATEGORIAS.find(c=>c.key===cat)||{label:cat,icon:'ph-circle',color:'#9097AC'};
+        const its = grupos[cat];
+        return `
+        <div class="mb-6 slide-up">
+            <div class="flex items-center gap-2 mb-2.5">
+                <i class="ph ${def.icon} text-base" style="color:${def.color}"></i>
+                <span class="text-xs font-bold uppercase tracking-wider" style="color:${def.color}">${def.label}</span>
+                <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ml-0.5"
+                      style="background:${def.color}">${its.length}</span>
+            </div>
+            <div class="flex flex-col gap-2 pl-1">
+                ${its.map(item => itemCard(item, def)).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function itemCard(item, def) {
+    const prazo = item.data_prazo
+        ? `<span class="flex items-center gap-1 text-[11px] ${vencido(item.data_prazo)?'text-faiston-pink font-semibold':'text-slate-400'}">
+               <i class="ph ph-calendar-x"></i>${fmtData(item.data_prazo)}${vencido(item.data_prazo)?' ⚠️':''}
+           </span>` : '';
+    const resp = item.responsavel
+        ? `<span class="flex items-center gap-1 text-[11px] text-slate-400"><i class="ph ph-user"></i>${item.responsavel}</span>` : '';
+    const statLabel = {aberto:'Aberto',em_andamento:'Em andamento',concluido:'Concluído'}[item.status]||item.status;
+    const statClass = `badge-${item.status||'aberto'}`;
+    const prioClass = `dot-${(item.prioridade||'media').toLowerCase()}`;
+
+    return `
+    <div class="item-card bg-white rounded-xl border border-faiston-border p-3.5 flex gap-3">
+        <span class="w-2.5 h-2.5 rounded-full ${prioClass} shrink-0 mt-1.5"></span>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-faiston-dark leading-snug mb-1.5">${item.descricao}</p>
+            <div class="flex items-center flex-wrap gap-3">
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${statClass}">${statLabel}</span>
+                ${resp}
+                ${prazo}
+                <span class="text-[10px] text-slate-300 ml-auto">${fmtDataHora(item.criado_em)}</span>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────
+function fmtData(d) {
+    if (!d) return '';
+    const [y,m,dia] = d.split('-');
+    return `${dia}/${m}/${y}`;
+}
+function fmtDataHora(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+}
+function vencido(d) {
+    if (!d) return false;
+    return new Date(d) < new Date();
+}
+
+// ── TEMA ──────────────────────────────────────────────────────────────
+function toggleTema() {
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    const novo = !isDark;
+    localStorage.setItem('faiston_tema', novo?'dark':'light');
+    document.documentElement.setAttribute('data-theme', novo?'dark':'light');
+    document.getElementById('icon-tema').className = novo?'ph ph-sun text-faiston-cyan':'ph ph-moon';
+}
+
+// ── START ─────────────────────────────────────────────────────────────
+init();
+setInterval(refreshData, 60000); // auto-refresh a cada 1 min
+setInterval(()=>fetch('/api/admin/ping?page=overview-gestor',{method:'POST'}), 60000);
+</script>
+</body>
+</html>

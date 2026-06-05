@@ -1004,6 +1004,14 @@ def overview_input_page(faiston_token: str = Cookie(None)):
     if not sess: return FileResponse("static/login.html")
     return FileResponse("static/overview-input.html")
 
+@app.get("/overview-gestor")
+def overview_gestor_page(faiston_token: str = Cookie(None)):
+    sess = get_session(faiston_token)
+    if not sess: return FileResponse("static/login.html")
+    if sess.get("perfil") not in ("admin", "gestor", "demo"):
+        return FileResponse("static/login.html")
+    return FileResponse("static/overview-gestor.html")
+
 app.mount("/css", StaticFiles(directory="static/css"), name="css")
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
 
