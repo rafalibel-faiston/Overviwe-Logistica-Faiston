@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response, Cookie, UploadFile, File, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import psycopg2
@@ -990,13 +990,13 @@ def seed_dados():
 def root(): return FileResponse("static/login.html")
 
 @app.get("/dashboard")
-def dashboard(): return FileResponse("static/index.html")
+def dashboard(): return RedirectResponse(url="/overview-gestor")
 
 @app.get("/funcionario")
-def funcionario(): return FileResponse("static/funcionario.html")
+def funcionario(): return RedirectResponse(url="/overview")
 
 @app.get("/admin")
-def admin_page(): return FileResponse("static/admin.html")
+def admin_page(): return RedirectResponse(url="/overview-gestor")
 
 @app.get("/overview")
 def overview_input_page(faiston_token: str = Cookie(None)):
