@@ -1,0 +1,206 @@
+/* ======================================================================
+   FAISTON OPS — Design System
+   Tokens globais — afeta todas as páginas.
+   ====================================================================== */
+
+:root {
+    /* Tema claro */
+    --th-bg:        #F4F5FA;
+    --th-bg-soft:   #ECEEF4;
+    --th-surface:   #ffffff;
+    --th-surface-2: #ffffff;
+    --th-border:    #E5E8F0;
+    --th-border-strong: #D6DAE6;
+    --th-text:      #0B0D1F;
+    --th-muted:     #5E647A;
+    --th-subtle:    #9097AC;
+    --th-hover:     #ECEEF4;
+    --th-input:     #ffffff;
+
+    /* Cores da marca */
+    --c-purple:     #5B2EE0;
+    --c-magenta:    #B826C9;
+    --c-pink:       #EC4899;
+    --c-cyan:       #06D7E6;
+    --c-dark:       #0B0D1F;
+
+    /* Composições */
+    --grad:         linear-gradient(135deg, #5B2EE0 0%, #B826C9 55%, #EC4899 100%);
+    --grad-cool:    linear-gradient(135deg, #06D7E6 0%, #5B2EE0 100%);
+    --glow:         0 12px 32px -8px rgba(184,38,201,0.45), 0 4px 12px -4px rgba(91,46,224,0.35);
+    --glow-soft:    0 8px 20px -6px rgba(184,38,201,0.30);
+    --shadow-card:  0 1px 2px rgba(13,15,35,0.04), 0 1px 1px rgba(13,15,35,0.02);
+    --shadow-hover: 0 24px 48px -16px rgba(13,15,35,0.12), 0 4px 12px -4px rgba(13,15,35,0.05);
+    --radius-card:  16px;
+    --radius-lg:    20px;
+}
+
+[data-theme="dark"] {
+    --th-bg:        #07070F;
+    --th-bg-soft:   #0C0C18;
+    --th-surface:   #11111E;
+    --th-surface-2: #161628;
+    --th-border:    rgba(255,255,255,0.07);
+    --th-border-strong: rgba(255,255,255,0.12);
+    --th-text:      #F1F2F8;
+    --th-muted:     #9097AC;
+    --th-subtle:    #6A718A;
+    --th-hover:     rgba(255,255,255,0.04);
+    --th-input:     #11111E;
+    --shadow-card:  0 1px 2px rgba(0,0,0,0.4);
+    --shadow-hover: 0 24px 48px -16px rgba(0,0,0,0.6);
+}
+
+/* Fontes */
+body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Sombras / classes utilitárias */
+.custom-shadow {
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.04);
+}
+
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-hover { box-shadow: var(--shadow-hover); }
+
+/* Gradiente */
+.grad-bg { background: var(--grad); }
+.grad-bg-cool { background: var(--grad-cool); }
+.grad-text {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.btn-grad {
+    background: var(--grad);
+    box-shadow: var(--glow);
+    color: #fff;
+    transition: transform .12s ease, box-shadow .2s ease;
+}
+.btn-grad:hover { transform: translateY(-1px); }
+.btn-grad:active { transform: translateY(0); }
+
+/* Glow halo (avatares, ícones primários) */
+.glow { box-shadow: var(--glow); }
+.glow-soft { box-shadow: var(--glow-soft); }
+
+/* Pulse dot */
+.pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.85); } }
+
+/* Slide-up entrance */
+@keyframes slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.slide-up { animation: slide-up 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94A3B8; }
+
+/* Monospace timer */
+.timer-display {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+/* ======================================================================
+   TEMA ESCURO — overrides Tailwind
+   ====================================================================== */
+
+[data-theme="dark"] body { background-color: var(--th-bg) !important; color: var(--th-text) !important; }
+
+/* Superfícies brancas */
+[data-theme="dark"] .bg-white              { background-color: var(--th-surface) !important; }
+[data-theme="dark"] .bg-faiston-bg         { background-color: var(--th-bg) !important; }
+[data-theme="dark"] .bg-slate-50           { background-color: var(--th-hover) !important; }
+[data-theme="dark"] .bg-slate-100          { background-color: var(--th-border) !important; }
+[data-theme="dark"] aside                  { background-color: var(--th-surface) !important; border-color: var(--th-border) !important; }
+
+/* Bordas */
+[data-theme="dark"] .border-faiston-border { border-color: var(--th-border) !important; }
+[data-theme="dark"] .border-slate-100      { border-color: var(--th-border) !important; }
+[data-theme="dark"] .border-slate-200      { border-color: var(--th-border) !important; }
+
+/* Textos */
+[data-theme="dark"] .text-faiston-dark,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-700        { color: var(--th-text) !important; }
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500        { color: var(--th-muted) !important; }
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-300        { color: var(--th-subtle) !important; }
+
+/* Inputs, selects */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea               { background-color: var(--th-input) !important; color: var(--th-text) !important; border-color: var(--th-border) !important; }
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder  { color: var(--th-subtle) !important; }
+
+/* Hover */
+[data-theme="dark"] .hover\:bg-slate-50:hover,
+[data-theme="dark"] .hover\:bg-slate-100:hover { background-color: var(--th-hover) !important; }
+
+/* Tabelas */
+[data-theme="dark"] thead tr              { background-color: var(--th-hover) !important; }
+[data-theme="dark"] tbody tr:hover        { background-color: var(--th-hover) !important; }
+
+/* Cards de gráfico — inline style override */
+[data-theme="dark"] .chart-card           { background: var(--th-surface) !important; border-color: var(--th-border) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
+
+/* Botão de tema */
+.btn-theme {
+    width: 2.25rem; height: 2.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--th-border);
+    background-color: var(--th-surface);
+    color: var(--th-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+}
+.btn-theme:hover { background-color: var(--th-hover); color: var(--th-text); }
+
+/* ======================================================================
+   AJUSTES VISUAIS — refinamentos universais
+   ====================================================================== */
+
+/* Cards com cantos mais arredondados */
+.card-faiston {
+    background: var(--th-surface);
+    border: 1px solid var(--th-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}
+.card-faiston:hover { box-shadow: var(--shadow-hover); }
+
+/* Pill / chip padrão */
+.chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 6px;
+    font-size: 11px; font-weight: 600;
+    border: 1px solid transparent;
+}
+
+/* ── DARK MODE — Kanban Gestor (Dashboard) ────── */
+[data-theme="dark"] #gk-aberto       { background: #0C0C18 !important; }
+[data-theme="dark"] #gk-em_andamento { background: rgba(91,46,224,0.1) !important; }
+[data-theme="dark"] #gk-concluido    { background: rgba(6,215,230,0.07) !important; }
+[data-theme="dark"] .gestor-card     { background: #11111E !important; border-color: rgba(255,255,255,0.08) !important; }
+[data-theme="dark"] .gestor-card:hover { background: #161628 !important; }
+[data-theme="dark"] #gk-badge-aberto { background: rgba(255,255,255,0.06) !important; color: #9097AC !important; }
+[data-theme="dark"] #view-kanban .text-faiston-dark  { color: #F1F2F8 !important; }
+[data-theme="dark"] #view-kanban .text-slate-400     { color: #6A718A !important; }
+[data-theme="dark"] .view-tab-wrap   { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.07) !important; }

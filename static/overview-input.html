@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview Semanal — Input</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+                colors: { faiston: {
+                    bg:'#F4F5FA', dark:'#0B0D1F', border:'#E5E8F0', muted:'#5E647A', faint:'#9097AC',
+                    cyan:'#06D7E6', purple:'#5B2EE0', magenta:'#B826C9', pink:'#EC4899'
+                }}
+            }}
+        }
+    </script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script>(function(){var t=localStorage.getItem('faiston_tema');if(t)document.documentElement.setAttribute('data-theme',t);})();</script>
+    <style>
+        :root {
+            --grad: linear-gradient(135deg, #5B2EE0 0%, #B826C9 55%, #EC4899 100%);
+            --glow: 0 12px 32px -8px rgba(184,38,201,0.35), 0 4px 12px -4px rgba(91,46,224,0.25);
+        }
+        .grad-bg  { background: var(--grad); }
+        .grad-text{ background: var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .btn-grad { background: var(--grad); box-shadow: var(--glow); transition: transform .12s ease; }
+        .btn-grad:hover { transform: translateY(-1px); opacity:.93; }
+
+        /* area tabs */
+        .area-tab { transition: all .2s ease; cursor: pointer; }
+        .area-tab.active-logistica  { border-color:#06D7E6 !important; color:#06D7E6 !important; background:rgba(6,215,230,.08) !important; }
+        .area-tab.active-facilities { border-color:#5B2EE0 !important; color:#5B2EE0 !important; background:rgba(91,46,224,.08) !important; }
+        .area-tab.active-seguros    { border-color:#EC4899 !important; color:#EC4899 !important; background:rgba(236,72,153,.08) !important; }
+
+        /* category pills */
+        .cat-btn { transition: all .15s ease; cursor:pointer; }
+        .cat-btn.selected { box-shadow: 0 0 0 2px currentColor; }
+
+        /* item card */
+        .item-card { transition: all .18s ease; }
+        .item-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -4px rgba(13,15,35,.1); }
+
+        /* priority dot */
+        .dot-baixa   { background:#3fb950; }
+        .dot-media   { background:#d29922; }
+        .dot-alta    { background:#f85149; }
+        .dot-critica { background:#f85149; animation: pulse-crit 1.4s ease infinite; }
+        @keyframes pulse-crit { 0%,100%{opacity:1}50%{opacity:.4} }
+
+        /* status badge */
+        .badge-aberto      { background:rgba(148,163,184,.15); color:#64748b; }
+        .badge-em_andamento{ background:rgba(91,46,224,.12);  color:#5B2EE0; }
+        .badge-concluido   { background:rgba(6,215,230,.12);  color:#0891b2; }
+
+        .custom-scrollbar::-webkit-scrollbar{width:4px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px}
+
+        /* dark mode */
+        [data-theme="dark"] body { background:#07070F; color:#F1F2F8; }
+        [data-theme="dark"] header { background:#11111E !important; border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .bg-white { background:#11111E !important; border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] .item-card { background:#11111E !important; border-color:rgba(255,255,255,.08) !important; }
+        [data-theme="dark"] .text-faiston-dark { color:#F1F2F8 !important; }
+        [data-theme="dark"] .text-slate-500, [data-theme="dark"] .text-slate-600 { color:#9097AC !important; }
+        [data-theme="dark"] .border-faiston-border { border-color:rgba(255,255,255,.07) !important; }
+        [data-theme="dark"] textarea, [data-theme="dark"] input, [data-theme="dark"] select {
+            background:#0d0d1a !important; color:#F1F2F8 !important; border-color:rgba(255,255,255,.1) !important;
+        }
+        [data-theme="dark"] #modal-overlay > div { background:#11111E !important; border-color:rgba(255,255,255,.08) !important; }
+
+        @keyframes slide-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .slide-up { animation: slide-up 280ms cubic-bezier(0.2,0.8,0.2,1) both; }
+
+        /* semana badge */
+        .semana-badge { background: linear-gradient(135deg,rgba(91,46,224,.1),rgba(6,215,230,.08)); border: 1px solid rgba(91,46,224,.2); }
+    </style>
+</head>
+<body class="bg-faiston-bg text-slate-800 font-sans min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-white border-b border-faiston-border px-6 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-[10px] grad-bg flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(184,38,201,0.45)]">
+            <i class="ph-fill ph-play text-white text-base"></i>
+        </div>
+        <span class="font-extrabold tracking-tight text-faiston-dark text-[15px]">FAISTON <span class="grad-text">OPS</span></span>
+        <span class="w-px h-4 bg-slate-200 mx-1"></span>
+        <span class="text-sm text-slate-500 font-medium">Overview Semanal</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="semana-badge px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <i class="ph ph-calendar-week text-faiston-purple text-sm"></i>
+            <span class="text-xs font-semibold text-faiston-muted" id="semana-label">Semana —</span>
+        </div>
+        <span class="text-sm font-semibold text-faiston-dark" id="header-nome">—</span>
+        <button onclick="toggleTema()" id="btn-tema" class="w-8 h-8 flex items-center justify-center rounded-lg border border-faiston-border text-slate-400 hover:text-faiston-dark hover:bg-slate-50 transition-colors">
+            <i class="ph ph-moon" id="icon-tema"></i>
+        </button>
+        <button onclick="novoItem()" class="btn-grad text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+            <i class="ph ph-plus-circle text-base"></i> Novo Item
+        </button>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- Area Selector -->
+    <div class="mb-8">
+        <p class="text-[11px] font-bold text-faiston-faint uppercase tracking-wider mb-3">Área</p>
+        <div class="flex gap-3 flex-wrap">
+            <button onclick="setArea('Logistica')" id="tab-Logistica"
+                class="area-tab px-5 py-2.5 rounded-xl border-2 border-faiston-border text-sm font-semibold text-slate-500 flex items-center gap-2 bg-white">
+                <i class="ph ph-truck text-base"></i> Logística
+            </button>
+            <button onclick="setArea('Facilities')" id="tab-Facilities"
+                class="area-tab px-5 py-2.5 rounded-xl border-2 border-faiston-border text-sm font-semibold text-slate-500 flex items-center gap-2 bg-white">
+                <i class="ph ph-buildings text-base"></i> Facilities
+            </button>
+            <button onclick="setArea('Seguros')" id="tab-Seguros"
+                class="area-tab px-5 py-2.5 rounded-xl border-2 border-faiston-border text-sm font-semibold text-slate-500 flex items-center gap-2 bg-white">
+                <i class="ph ph-shield-check text-base"></i> Seguros
+            </button>
+        </div>
+    </div>
+
+    <!-- Category filter bar -->
+    <div class="flex gap-2 flex-wrap mb-6" id="cat-filters">
+        <!-- populated by JS -->
+    </div>
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" id="stats-bar">
+        <div class="bg-white rounded-xl border border-faiston-border p-4">
+            <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider mb-1">Total</p>
+            <p class="text-2xl font-extrabold text-faiston-dark" id="stat-total">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-faiston-border p-4">
+            <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider mb-1">Aberto</p>
+            <p class="text-2xl font-extrabold text-slate-400" id="stat-aberto">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-faiston-border p-4">
+            <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider mb-1">Em andamento</p>
+            <p class="text-2xl font-extrabold text-faiston-purple" id="stat-andamento">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-faiston-border p-4">
+            <p class="text-[10px] font-bold text-faiston-faint uppercase tracking-wider mb-1">Crítico</p>
+            <p class="text-2xl font-extrabold text-faiston-pink" id="stat-critico">0</p>
+        </div>
+    </div>
+
+    <!-- Items list -->
+    <div id="items-list" class="flex flex-col gap-3">
+        <!-- populated by JS -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-20">
+        <i class="ph ph-clipboard-text text-5xl text-slate-200 block mb-4"></i>
+        <p class="text-slate-400 font-medium text-sm">Nenhum item registrado para esta área</p>
+        <p class="text-slate-300 text-xs mt-1">Clique em <strong>Novo Item</strong> para começar</p>
+    </div>
+
+</main>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(11,13,31,.6);backdrop-filter:blur(4px)">
+    <div class="bg-white rounded-2xl border border-faiston-border shadow-2xl w-full max-w-lg slide-up overflow-hidden">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-faiston-border">
+            <h3 class="text-sm font-bold text-faiston-dark" id="modal-title">Novo Item</h3>
+            <button onclick="fecharModal()" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-colors">
+                <i class="ph ph-x text-sm"></i>
+            </button>
+        </div>
+        <!-- Modal body -->
+        <div class="px-6 py-5 flex flex-col gap-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+
+            <!-- Categoria -->
+            <div>
+                <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">Categoria</label>
+                <div class="grid grid-cols-2 gap-2" id="modal-cats">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+
+            <!-- Descrição -->
+            <div>
+                <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">Descrição</label>
+                <textarea id="m-descricao" rows="3"
+                    class="w-full border border-faiston-border rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-faiston-purple transition-all bg-white"
+                    placeholder="Descreva o item..."></textarea>
+            </div>
+
+            <!-- Prioridade + Status -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">Prioridade</label>
+                    <div class="flex flex-col gap-1.5" id="modal-prioridades">
+                        <button onclick="setPrio('Baixa')" data-prio="Baixa" class="prio-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-cyan transition-all">
+                            <span class="w-2 h-2 rounded-full dot-baixa"></span> Baixa
+                        </button>
+                        <button onclick="setPrio('Media')" data-prio="Media" class="prio-btn text-left px-3 py-2 rounded-lg border border-faiston-purple bg-faiston-purple/5 text-xs font-semibold text-faiston-purple flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full dot-media"></span> Média
+                        </button>
+                        <button onclick="setPrio('Alta')" data-prio="Alta" class="prio-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-pink transition-all">
+                            <span class="w-2 h-2 rounded-full dot-alta"></span> Alta
+                        </button>
+                        <button onclick="setPrio('Critica')" data-prio="Critica" class="prio-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-pink transition-all">
+                            <span class="w-2 h-2 rounded-full dot-critica"></span> Crítica
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">Status</label>
+                    <div class="flex flex-col gap-1.5" id="modal-statuses">
+                        <button onclick="setStatus('aberto')" data-status="aberto" class="stat-btn text-left px-3 py-2 rounded-lg border border-faiston-border bg-slate-50 text-xs font-semibold text-faiston-dark flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-slate-300"></span> Aberto
+                            <i class="ph ph-check text-faiston-purple ml-auto"></i>
+                        </button>
+                        <button onclick="setStatus('em_andamento')" data-status="em_andamento" class="stat-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-purple transition-all">
+                            <span class="w-2 h-2 rounded-full bg-faiston-purple"></span> Em andamento
+                        </button>
+                        <button onclick="setStatus('concluido')" data-status="concluido" class="stat-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-cyan transition-all">
+                            <span class="w-2 h-2 rounded-full bg-faiston-cyan"></span> Concluído
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responsável + Prazo -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">Responsável</label>
+                    <input id="m-responsavel" type="text"
+                        class="w-full border border-faiston-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-faiston-purple transition-all bg-white"
+                        placeholder="Nome...">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-faiston-faint uppercase tracking-[.12em] mb-2 block">
+                        <i class="ph ph-calendar-x text-faiston-pink mr-1"></i>Prazo
+                    </label>
+                    <input id="m-prazo" type="date"
+                        class="w-full border border-faiston-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-faiston-pink transition-all bg-white">
+                </div>
+            </div>
+
+        </div>
+        <!-- Modal footer -->
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-faiston-border bg-slate-50/60">
+            <button onclick="fecharModal()" class="px-5 py-2.5 rounded-lg border border-faiston-border text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+            <button onclick="salvarItem()" class="btn-grad px-5 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center gap-2">
+                <i class="ph ph-floppy-disk"></i> <span id="btn-salvar-label">Salvar</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-white border border-faiston-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-xl slide-up">
+    <span id="toast-icon" class="text-lg">✅</span>
+    <span id="toast-msg" class="text-sm font-semibold text-faiston-dark"></span>
+</div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────────────────
+const CATEGORIAS = [
+    { key: 'atividade',     label: 'Atividades Realizadas',  icon: 'ph-check-circle',         color: '#06D7E6' },
+    { key: 'todo',          label: 'To Dos em Aberto',       icon: 'ph-list-checks',           color: '#5B2EE0' },
+    { key: 'criticidade',   label: 'Criticidades e Riscos',  icon: 'ph-warning',               color: '#f85149' },
+    { key: 'escalation',    label: 'Escalations',            icon: 'ph-arrow-up-right',        color: '#EC4899' },
+    { key: 'direcao',       label: 'Precisa de Direção',     icon: 'ph-arrows-out',            color: '#B826C9' },
+    { key: 'ideia',         label: 'Ideias e Sugestões',     icon: 'ph-lightbulb',             color: '#d29922' },
+    { key: 'melhoria',      label: 'Melhorias',              icon: 'ph-trend-up',              color: '#3fb950' },
+    { key: 'chamado',       label: 'Status de Chamados',     icon: 'ph-headset',               color: '#06D7E6' },
+    { key: 'proximo_passo', label: 'Próximos Passos',        icon: 'ph-arrow-circle-right',    color: '#5B2EE0' },
+];
+
+const AREAS = ['Logistica', 'Facilities', 'Seguros'];
+const AREA_COLORS = { Logistica: '#06D7E6', Facilities: '#5B2EE0', Seguros: '#EC4899' };
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let areaAtiva = 'Logistica';
+let catFiltro  = 'todas';
+let items      = [];         // todos os overview-items carregados
+let editingId  = null;
+let modalCatSel   = 'todo';
+let modalPrioSel  = 'Media';
+let modalStatSel  = 'aberto';
+let sessaoNome    = '';
+
+// ── INIT ──────────────────────────────────────────────────────────────
+async function init() {
+    setSemanaLabel();
+    await carregarSessao();
+    renderCatFilters();
+    setArea('Logistica');
+}
+
+function setSemanaLabel() {
+    const hoje = new Date();
+    const inicio = new Date(hoje);
+    inicio.setDate(hoje.getDate() - hoje.getDay() + 1);
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+    const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    document.getElementById('semana-label').textContent = `Semana ${fmt(inicio)} – ${fmt(fim)}`;
+}
+
+async function carregarSessao() {
+    try {
+        const r = await fetch('/api/me');
+        if (!r.ok) { window.location.href = '/'; return; }
+        const s = await r.json();
+        sessaoNome = s.nome || '';
+        document.getElementById('header-nome').textContent = sessaoNome;
+        // pre-set icone tema
+        if (localStorage.getItem('faiston_tema') === 'dark') {
+            document.getElementById('icon-tema').className = 'ph ph-sun text-faiston-cyan';
+        }
+    } catch { window.location.href = '/'; }
+}
+
+// ── AREA ──────────────────────────────────────────────────────────────
+function setArea(area) {
+    areaAtiva = area;
+    catFiltro = 'todas';
+    AREAS.forEach(a => {
+        const tab = document.getElementById(`tab-${a}`);
+        tab.className = tab.className.replace(/active-\w+/g, '').trim();
+    });
+    const tab = document.getElementById(`tab-${area}`);
+    const cls = `active-${area.toLowerCase()}`;
+    tab.classList.add(cls);
+    renderCatFilters();
+    carregarItems();
+}
+
+// ── CATEGORY FILTERS ─────────────────────────────────────────────────
+function renderCatFilters() {
+    const container = document.getElementById('cat-filters');
+    const all = [{ key:'todas', label:'Todas', icon:'ph-squares-four', color:'#5E647A' }, ...CATEGORIAS];
+    container.innerHTML = all.map(c => `
+        <button onclick="setCatFiltro('${c.key}')" id="cf-${c.key}"
+            class="cat-btn px-3 py-1.5 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 bg-white flex items-center gap-1.5 hover:border-slate-300 transition-all ${catFiltro===c.key?'selected':''}"
+            style="${catFiltro===c.key?`border-color:${c.color};color:${c.color};background:${c.color}18`:''}">
+            <i class="ph ${c.icon} text-sm"></i> ${c.label}
+        </button>
+    `).join('');
+}
+
+function setCatFiltro(key) {
+    catFiltro = key;
+    renderCatFilters();
+    renderItems();
+}
+
+// ── LOAD ITEMS ────────────────────────────────────────────────────────
+async function carregarItems() {
+    try {
+        const r = await fetch(`/api/overview?area=${areaAtiva}`);
+        if (!r.ok) { items = []; renderItems(); return; }
+        items = await r.json();
+        renderItems();
+    } catch { items = []; renderItems(); }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function renderItems() {
+    const lista = document.getElementById('items-list');
+    const empty = document.getElementById('empty-state');
+
+    let filtrados = items;
+    if (catFiltro !== 'todas') filtrados = items.filter(i => i.categoria === catFiltro);
+
+    // stats
+    document.getElementById('stat-total').textContent     = filtrados.length;
+    document.getElementById('stat-aberto').textContent    = filtrados.filter(i=>i.status==='aberto').length;
+    document.getElementById('stat-andamento').textContent = filtrados.filter(i=>i.status==='em_andamento').length;
+    document.getElementById('stat-critico').textContent   = filtrados.filter(i=>i.prioridade==='Critica').length;
+
+    if (!filtrados.length) {
+        lista.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    // agrupar por categoria
+    const grupos = {};
+    filtrados.forEach(i => {
+        if (!grupos[i.categoria]) grupos[i.categoria] = [];
+        grupos[i.categoria].push(i);
+    });
+
+    lista.innerHTML = Object.entries(grupos).map(([cat, its]) => {
+        const def = CATEGORIAS.find(c => c.key === cat) || { label: cat, icon:'ph-circle', color:'#9097AC' };
+        return `
+        <div class="slide-up">
+            <div class="flex items-center gap-2 mb-2 mt-2">
+                <i class="ph ${def.icon} text-base" style="color:${def.color}"></i>
+                <span class="text-xs font-bold uppercase tracking-wider" style="color:${def.color}">${def.label}</span>
+                <span class="text-[10px] text-slate-400 font-medium">${its.length}</span>
+            </div>
+            <div class="flex flex-col gap-2">
+                ${its.map(item => itemCard(item)).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function itemCard(item) {
+    const def   = CATEGORIAS.find(c=>c.key===item.categoria)||{label:item.categoria,icon:'ph-circle',color:'#9097AC'};
+    const prazo = item.data_prazo ? `<span class="flex items-center gap-1 text-[11px] text-slate-400"><i class="ph ph-calendar-x text-faiston-pink"></i>${fmtData(item.data_prazo)}</span>` : '';
+    const resp  = item.responsavel ? `<span class="flex items-center gap-1 text-[11px] text-slate-400"><i class="ph ph-user"></i>${item.responsavel}</span>` : '';
+    const prioClass = `dot-${(item.prioridade||'media').toLowerCase()}`;
+    const statClass = `badge-${item.status||'aberto'}`;
+    const statLabel = { aberto:'Aberto', em_andamento:'Em andamento', concluido:'Concluído' }[item.status] || item.status;
+
+    return `
+    <div class="item-card bg-white rounded-xl border border-faiston-border p-4 flex gap-4">
+        <div class="flex flex-col items-center gap-1.5 pt-0.5">
+            <span class="w-2.5 h-2.5 rounded-full ${prioClass} shrink-0 mt-0.5"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-faiston-dark leading-snug mb-1.5">${item.descricao}</p>
+            <div class="flex items-center flex-wrap gap-3">
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${statClass}">${statLabel}</span>
+                ${resp}
+                ${prazo}
+                <span class="text-[10px] text-slate-300 ml-auto">${fmtDataHora(item.criado_em)}</span>
+            </div>
+        </div>
+        <div class="flex flex-col gap-1.5 shrink-0">
+            <button onclick="editarItem(${item.id})" title="Editar"
+                class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-faiston-purple hover:bg-faiston-purple/8 transition-colors">
+                <i class="ph ph-pencil-simple text-sm"></i>
+            </button>
+            <button onclick="deletarItem(${item.id})" title="Excluir"
+                class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-faiston-pink hover:bg-faiston-pink/8 transition-colors">
+                <i class="ph ph-trash text-sm"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
+function fmtData(d) {
+    if (!d) return '';
+    const [y,m,dia] = d.split('-');
+    return `${dia}/${m}/${y}`;
+}
+function fmtDataHora(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────
+function novoItem() {
+    editingId = null;
+    modalCatSel  = 'todo';
+    modalPrioSel = 'Media';
+    modalStatSel = 'aberto';
+    document.getElementById('m-descricao').value   = '';
+    document.getElementById('m-responsavel').value = '';
+    document.getElementById('m-prazo').value       = '';
+    document.getElementById('modal-title').textContent    = 'Novo Item';
+    document.getElementById('btn-salvar-label').textContent = 'Salvar';
+    renderModalCats();
+    syncPrioButtons();
+    syncStatButtons();
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('m-descricao').focus(), 80);
+}
+
+function editarItem(id) {
+    const item = items.find(i=>i.id===id);
+    if (!item) return;
+    editingId    = id;
+    modalCatSel  = item.categoria;
+    modalPrioSel = item.prioridade || 'Media';
+    modalStatSel = item.status || 'aberto';
+    document.getElementById('m-descricao').value   = item.descricao || '';
+    document.getElementById('m-responsavel').value = item.responsavel || '';
+    document.getElementById('m-prazo').value       = item.data_prazo || '';
+    document.getElementById('modal-title').textContent    = 'Editar Item';
+    document.getElementById('btn-salvar-label').textContent = 'Atualizar';
+    renderModalCats();
+    syncPrioButtons();
+    syncStatButtons();
+    document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function fecharModal() {
+    document.getElementById('modal-overlay').classList.add('hidden');
+    editingId = null;
+}
+
+function renderModalCats() {
+    const container = document.getElementById('modal-cats');
+    container.innerHTML = CATEGORIAS.map(c => `
+        <button onclick="setModalCat('${c.key}')"
+            class="modal-cat-btn text-left px-3 py-2.5 rounded-xl border-2 text-xs font-semibold flex items-center gap-2 transition-all
+            ${modalCatSel===c.key?'':'border-faiston-border text-slate-500 bg-white hover:border-slate-300'}"
+            style="${modalCatSel===c.key?`border-color:${c.color};color:${c.color};background:${c.color}15`:''}">
+            <i class="ph ${c.icon} text-sm" style="${modalCatSel===c.key?`color:${c.color}`:''}"></i>
+            ${c.label}
+        </button>`).join('');
+}
+
+function setModalCat(key) {
+    modalCatSel = key;
+    renderModalCats();
+}
+
+function setPrio(p) {
+    modalPrioSel = p;
+    syncPrioButtons();
+}
+
+function syncPrioButtons() {
+    document.querySelectorAll('.prio-btn').forEach(b => {
+        const p = b.dataset.prio;
+        if (p === modalPrioSel) {
+            b.className = `prio-btn text-left px-3 py-2 rounded-lg border text-xs font-semibold flex items-center gap-2 ` +
+                (p==='Baixa'?'border-faiston-cyan text-faiston-cyan bg-faiston-cyan/5':
+                 p==='Media'?'border-faiston-purple text-faiston-purple bg-faiston-purple/5':
+                 'border-faiston-pink text-faiston-pink bg-faiston-pink/5');
+        } else {
+            b.className = `prio-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-slate-300 transition-all`;
+        }
+    });
+}
+
+function setStatus(s) {
+    modalStatSel = s;
+    syncStatButtons();
+}
+
+function syncStatButtons() {
+    document.querySelectorAll('.stat-btn').forEach(b => {
+        const st = b.dataset.status;
+        const isActive = st === modalStatSel;
+        b.innerHTML = b.innerHTML.replace(/<i class="ph ph-check.*?<\/i>/g, '');
+        if (isActive) {
+            b.className = `stat-btn text-left px-3 py-2 rounded-lg border border-faiston-purple bg-faiston-purple/5 text-xs font-semibold text-faiston-purple flex items-center gap-2`;
+            b.innerHTML += `<i class="ph ph-check text-faiston-purple ml-auto"></i>`;
+        } else {
+            b.className = `stat-btn text-left px-3 py-2 rounded-lg border border-faiston-border text-xs font-semibold text-slate-500 flex items-center gap-2 hover:border-faiston-purple transition-all`;
+        }
+    });
+}
+
+// ── SAVE / DELETE ─────────────────────────────────────────────────────
+async function salvarItem() {
+    const descricao   = document.getElementById('m-descricao').value.trim();
+    const responsavel = document.getElementById('m-responsavel').value.trim();
+    const prazo       = document.getElementById('m-prazo').value;
+    if (!descricao) { showToast('⚠️','Descreva o item antes de salvar.'); return; }
+
+    const payload = {
+        area:        areaAtiva,
+        categoria:   modalCatSel,
+        descricao,
+        prioridade:  modalPrioSel,
+        status:      modalStatSel,
+        responsavel: responsavel || null,
+        data_prazo:  prazo || null,
+    };
+
+    try {
+        const url    = editingId ? `/api/overview/${editingId}` : '/api/overview';
+        const method = editingId ? 'PUT' : 'POST';
+        const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        if (!r.ok) throw new Error(await r.text());
+        fecharModal();
+        showToast('✅', editingId ? 'Item atualizado!' : 'Item salvo!');
+        await carregarItems();
+    } catch(e) {
+        showToast('❌', 'Erro ao salvar. Tente novamente.');
+        console.error(e);
+    }
+}
+
+async function deletarItem(id) {
+    if (!confirm('Excluir este item?')) return;
+    try {
+        const r = await fetch(`/api/overview/${id}`, { method:'DELETE' });
+        if (!r.ok) throw new Error();
+        showToast('🗑️','Item removido.');
+        await carregarItems();
+    } catch { showToast('❌','Erro ao remover.'); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(icon, msg) {
+    clearTimeout(toastTimer);
+    document.getElementById('toast-icon').textContent = icon;
+    document.getElementById('toast-msg').textContent  = msg;
+    const t = document.getElementById('toast');
+    t.classList.remove('hidden');
+    toastTimer = setTimeout(()=>t.classList.add('hidden'), 3000);
+}
+
+// ── TEMA ──────────────────────────────────────────────────────────────
+function toggleTema() {
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    const novo = !isDark;
+    localStorage.setItem('faiston_tema', novo?'dark':'light');
+    document.documentElement.setAttribute('data-theme', novo?'dark':'light');
+    document.getElementById('icon-tema').className = novo?'ph ph-sun text-faiston-cyan':'ph ph-moon';
+}
+
+// ── CLOSE MODAL ON BACKDROP ───────────────────────────────────────────
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+    if (e.target === this) fecharModal();
+});
+
+// ── START ─────────────────────────────────────────────────────────────
+init();
+setInterval(()=>fetch('/api/admin/ping?page=overview-input',{method:'POST'}), 60000);
+</script>
+</body>
+</html>
